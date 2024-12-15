@@ -1,0 +1,62 @@
+local player = game.Players.LocalPlayer
+local gui = Instance.new("ScreenGui")
+gui.Name = "KyraTimingGame"
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Moving bar
+local movingBar = Instance.new("Frame")
+movingBar.Name = "MovingBar"
+movingBar.Size = UDim2.new(0.1, 0, 0.02, 0)
+movingBar.Position = UDim2.new(0, 0, 0.5, 0)
+movingBar.BackgroundColor3 = Color3.new(0, 1, 0) -- Green
+movingBar.Parent = gui
+
+-- Perfect zone
+local perfectZone = Instance.new("Frame")
+perfectZone.Name = "PerfectZone"
+perfectZone.Size = UDim2.new(0.1, 0, 0.02, 0)
+perfectZone.Position = UDim2.new(0.45, 0, 0.5, 0)
+perfectZone.BackgroundColor3 = Color3.new(1, 0, 0) -- Red
+perfectZone.Parent = gui
+
+-- Variables for moving and hitbox
+local speed = 200
+local movingRight = true
+local isRunning = true
+local hitboxSizeMultiplier = 2
+
+-- Function to check if timing is perfect
+local function isPerfect(bar, zone)
+    local barPosition = bar.Position.X.Scale
+    local zoneStart = zone.Position.X.Scale - (zone.Size.X.Scale * (hitboxSizeMultiplier - 1) / 2)
+    local zoneEnd = zoneStart + zone.Size.X.Scale * hitboxSizeMultiplier
+
+    return barPosition >= zoneStart and barPosition <= zoneEnd
+end
+
+-- Bar movement loop
+game:GetService("RunService").RenderStepped:Connect(function(deltaTime)
+    if isRunning then
+        local newX = movingBar.Position.X.Scale + (movingRight and speed or -speed) * deltaTime / 100
+        if newX >= 1 then
+            newX = 1
+            movingRight = false
+        elseif newX <= 0 then
+            newX = 0
+            movingRight = true
+        end
+        movingBar.Position = UDim2.new(newX, 0, movingBar.Position.Y.Scale, 0)
+    end
+end)
+
+-- Stop the bar on key press
+player:GetMouse().KeyDown:Connect(function(key)
+    if key == " " then
+        isRunning = false
+        if isPerfect(movingBar, perfectZone) then
+            print("Kyra says: Perfect Timing!")
+        else
+            print("Kyra says: Missed!")
+        end
+    end
+end)
